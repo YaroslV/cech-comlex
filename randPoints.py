@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import random
 import math
+import itertools
 
 
 #TODO plt is global variable entry point for display is it good or bad
@@ -27,14 +28,17 @@ class Cell:
 			return None
 		d = calculateDistance(self.x,self.y,c.x,c.y)
 		a = d /2
-		h = math.sqrt(r**2 - a**2)
-		Pm_0 = p1[0] + (a*(c.x - self.x))/d
-		Pm_1 = p1[0] + (a*(c.y - self.y))/d
+		h = math.sqrt((self.r)**2 - a**2)
+		Pm_0 = self.x + (a*(c.x - self.x))/d
+		Pm_1 = self.x + (a*(c.y - self.y))/d
 		ip1_0 = Pm_0 + (h*(c.y - self.y))/d
 		ip1_1 = Pm_1 - (h*(c.x - self.x))/d
 		ip2_0 = Pm_0 - (h*(c.y - self.y))/d	
 		ip2_1 = Pm_1 + (h*(c.x - self.x))/d
 		return [(ip1_0,ip1_1),(ip2_0, ip2_1)]
+	def is_contains_point(self,p):
+		d = calculateDistance(self.x, self.y, p[0],p[1])
+		return d <= self.r
 
 def showRandomPoints(n,r):	
 	data = get_list_of_random_cells_with_length_n(n,r)
@@ -126,14 +130,11 @@ def construct_1_simplices(cells, r):
 				S1.append(s)
 	return S1
 	
-def is_point_inside_cell(point, cell, r):
-	dist = calculateDistance(point[0], point[1], cell[0], cell[1])
-	return dist <= r
-		
+
 	
 
 #candidates are cells
-def verify_candidate(candidates ,r):
+def verify_candidate(candidates):
 	X = []
 	k = len(candidates)
 	for i in range(k):
@@ -150,7 +151,7 @@ def verify_candidate(candidates ,r):
 		numberOfXijExistsInRestCells = 0
 		for t in restCells:
 			anotherCell = candidates[t]
-			if is_point_inside_cell(x[2][0], anotherCell, r) or is_point_inside_cell(x[2][1], anotherCell, r) :
+			if anotherCell.is_contains_point(x[2][0]) or anotherCell.is_contains_point(x[2][1]) :
 				numberOfXijExistsInRestCells = numberOfXijExistsInRestCells + 1
 		
 		if numberOfXijExistsInRestCells == len(restCellsIndexList) :
@@ -160,16 +161,16 @@ def verify_candidate(candidates ,r):
 def construct_cech_complex(S0, S1):
 	k = 2
 	S = []
+	neighDict = get_neigbors_dict(S1)
 	S.append(0)
 	S.append(1)	
 	while (True) :
 		S.append([])
-		for v in S0:
-			Sstar = [] #get_set_of_candidate(v,S1)
-			for u in Sstar :
-				verification = verify_candidate(u)
-				if verification :
-					S[k].append(u)
+		Sstar = get_set_of_candidate(neighDict,k,S0)
+		for u in Sstar :
+			verification = verify_candidate(u)
+			if verification :
+				S[k].append(u)
 		if len(S[k]) != 0 :
 			k = k + 1
 		else: 
@@ -177,8 +178,9 @@ def construct_cech_complex(S0, S1):
 		return S[2:]
 		
 def get_neigbors_dict(S1):	
+
 	neigboursDict = dict()
-	for j in S1:		
+	for j in S1:
 			if neigboursDict.get(j[0],0) == 0:
 				neigboursDict[j[0]] = []
 			neigboursDict[j[0]].append(j[1])
@@ -188,13 +190,19 @@ def get_neigbors_dict(S1):
 
 	return neigboursDict
 
-def get_set_of_candidate(neigboursDict, kSimplexNo):
-	setOfCandidate = []
-	for i in neigboursDict :
-		if neigboursDict[i] < kSimplexNo :
-			break;
-		setOfCandidate.append(i)
 
+def get_set_of_candidate(neighDict, kSimplexNo,cells):
+	candidateCellsList = []
+	for i in neighDict : 
+		if len(neighDict[i]) >=kSimplexNo :
+			comb = [ list(c) for c in itertools.combinations(neighDict[i],kSimplexNo)]
+			for c in comb:									
+				c.append(i)
+				cellsC = [cells[i] for i in c]
+				candidateCellsList.append(cellsC)
+	return candidateCellsList
+
+	
 
 
 
