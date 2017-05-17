@@ -26,7 +26,7 @@ class Cell:
 	def get_intersection_points(self,c):
 		if self.is_intersects_with_cell(c) == False:
 			return None
-		d = calculateDistance(self.x,self.y,c.x,c.y)
+		d = calculateDistance(self.x,c.x,self.y,c.y)
 		a = d /2
 		h = math.sqrt((self.r)**2 - a**2)
 		Pm_0 = self.x + (a*(c.x - self.x))/d
@@ -39,6 +39,10 @@ class Cell:
 	def is_contains_point(self,p):
 		d = calculateDistance(self.x, self.y, p[0],p[1])
 		return d <= self.r
+	def __str__(self):
+		return "cell {0}".format(self.index)
+	def __repr__(self):
+		return "cell {0}".format(self.index)
 
 def showRandomPoints(n,r):	
 	data = get_list_of_random_cells_with_length_n(n,r)
@@ -62,15 +66,16 @@ def showRandomPoints(n,r):
 	
 	drawLinesForCertainsIndexes(data, S1)
 	print(S1)		
-	print(get_neigbors_dict(S1))
 	print(Sset)
 	plt.show()
+
+
 
 def getIntersectionPoints(p1,p2,r):
 	if (isIntersect(p1,p2,r) == False):
 		return None
 	
-	d = calculateDistance(p1[0],p1[1], p2[0],p2[1])
+	d = calculateDistance(p1[0],p2[0], p1[1],p2[1])
 	a = d / 2 
 	h = math.sqrt(r**2 - a**2)
 	Pm_0 = p1[0] + (a*(p2[0] - p1[0]))/d
@@ -94,8 +99,8 @@ def drawCircle(p,r):
 	circle1 = plt.Circle((p[0],p[1]),r,color='b', alpha =.2)
 	plt.gcf().gca().add_artist(circle1)
 
-def calculateDistance(x1,y1,x2,y2):
-	d = math.sqrt((x1 - y1)**2 + (x2 - y2)**2)
+def calculateDistance(x1,x2,y1,y2):
+	d = math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 	return d
 
 	#hard-coded range
@@ -137,19 +142,19 @@ def construct_1_simplices(cells, r):
 def verify_candidate(candidates):
 	X = []
 	k = len(candidates)
-	for i in range(k):
-		for j in range(i+1, k+1) :
+	for i in range(k - 1):
+		for j in range(i+1, k) :
 			intersectionPoints = candidates[i].get_intersection_points(candidates[j])
 			if intersectionPoints is not None:
 				X.append((i,j,intersectionPoints))
 	for x in X:
 		i = x[0]
 		j = x[1]
-		restCellsIndexList = range(k)
+		restCellsIndexList = list(range(k))
 		restCellsIndexList.remove(i)
-		restCellsÌndexList.remove(j)
+		restCellsIndexList.remove(j)
 		numberOfXijExistsInRestCells = 0
-		for t in restCells:
+		for t in restCellsIndexList:
 			anotherCell = candidates[t]
 			if anotherCell.is_contains_point(x[2][0]) or anotherCell.is_contains_point(x[2][1]) :
 				numberOfXijExistsInRestCells = numberOfXijExistsInRestCells + 1
@@ -175,7 +180,7 @@ def construct_cech_complex(S0, S1):
 			k = k + 1
 		else: 
 			break
-		return S[2:]
+	return S[2:]
 		
 def get_neigbors_dict(S1):	
 

@@ -1,3 +1,3 @@
 import randPoints
 
-randPoints.showRandomPoints(10,2)
+randPoints.showRandomPoints(10,3)
